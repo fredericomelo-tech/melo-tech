@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esko UTM Generator 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .optional {
+            color: #a0aec0;
+            font-weight: 400;
+            font-size: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-copy {
+            background: #48bb78;
+            color: white;
+            display: none;
+        }
+
+        .btn-copy:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-copy.show {
+            display: block;
+        }
+
+        .btn-reset {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-reset:hover {
+            background: #cbd5e0;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .result-url {
+            background: white;
+            padding: 16px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+        }
+
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dynamic-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .dynamic-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Esko UTM Generator 2026</h1>
+        <p class="subtitle">Generate tracking URLs with UTM parameters</p>
+
+        <form id="utmForm">
+            <div class="form-group">
+                <label for="baseUrl">Base URL *</label>
+                <input type="url" id="baseUrl" placeholder="https://example.com/page" required>
+            </div>
+
+            <div class="form-group">
+                <label for="webActivity">Web Activity *</label>
+                <select id="webActivity" required>
+                    <option value="">-- Select Activity --</option>
+                    <option value="ppc_google">PPC (Google Ads)</option>
+                    <option value="ppc_linkedin">PPC (LinkedIn Ads)</option>
+                    <option value="seo">SEO</option>
+                    <option value="organic_linkedin">Organic Social - LinkedIn</option>
+                    <option value="organic_instagram">Organic Social - Instagram</option>
+                    <option value="organic_facebook">Organic Social - Facebook</option>
+                    <option value="organic_tiktok">Organic Social - TikTok</option>
+                    <option value="organic_reddit">Organic Social - Reddit</option>
+                    <option value="organic_youtube">Organic Social - YouTube</option>
+                    <option value="organic_packaging_pulse">Organic Social - Packaging Pulse</option>
+                    <option value="organic_final_proof">Organic Social - Final Proof</option>
+                    <option value="free_software">Free Software</option>
+                    <option value="trial_software">Trial Software</option>
+                    <option value="inbound_emails">Inbound Emails</option>
+                    <option value="nurturing_emails">Nurturing Emails</option>
+                    <option value="pardot_brands">Pardot Outbound Email – Brands</option>
+                    <option value="pardot_suppliers">Pardot Outbound Email – Suppliers</option>
+                    <option value="outreach_brands">Outreach Emails Brands</option>
+                    <option value="outreach_suppliers">Outreach Emails Suppliers</option>
+                </select>
+            </div>
+
+            <div id="dynamicFields"></div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-generate">Generate UTM URL</button>
+                <button type="button" class="btn-copy" id="copyBtn">Copy URL</button>
+                <button type="button" class="btn-reset" id="resetBtn">Reset</button>
+            </div>
+        </form>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-label">Generated URL:</div>
+            <div class="result-url" id="resultUrl"></div>
+        </div>
+    </div>
+
+    <div class="copy-notification" id="copyNotification">✓ URL copied to clipboard!</div>
+
+    <script>
+        const utmConfig = {
+            ppc_google: {
+                source: 'ppc',
+                medium: 'cpc',
+                campaign: { label: 'Campaign Name', placeholder: 'GADS_campaign_name' },
+                term: { label: 'Keyword', placeholder: 'Enter keyword' },
+                content: { label: 'Ad Group', placeholder: 'Enter ad group' }
+            },
+            ppc_linkedin: {
+                source: 'linkedin_paid',
+                medium: 'cpc',
+                campaign: { label: 'Campaign Name', placeholder: 'LIADS_campaign_name' },
+                term: { label: 'Keyword', placeholder: 'Enter keyword' },
+                content: { label: 'Ad Group', placeholder: 'Enter ad group' }
+            },
+            seo: {
+                source: 'google',
+                medium: 'organic',
+                campaign: { label: 'Campaign', placeholder: 'seo' },
+                term: null,
+                content: { label: 'Landing Page', placeholder: 'landing_page' }
+            },
+            organic_linkedin: {
+                source: 'linkedin',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'organic_social' },
+                term: null,
+                content: { label: 'Post Name', placeholder: 'post_name' }
+            },
+            organic_instagram: {
+                source: 'instagram',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'organic_social' },
+                term: null,
+                content: { label: 'Post Name', placeholder: 'post_name' }
+            },
+            organic_facebook: {
+                source: 'facebook',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'organic_social' },
+                term: null,
+                content: { label: 'Post Name', placeholder: 'post_name' }
+            },
+            organic_tiktok: {
+                source: 'tiktok',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'organic_social' },
+                term: null,
+                content: { label: 'Post Name', placeholder: 'post_name' }
+            },
+            organic_reddit: {
+                source: 'reddit',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'organic_social' },
+                term: null,
+                content: { label: 'Post Name', placeholder: 'post_name' }
+            },
+            organic_youtube: {
+                source: 'youtube',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'video_title' },
+                term: { label: 'Video Title', placeholder: 'video_title' },
+                content: null
+            },
+            organic_packaging_pulse: {
+                source: 'linkedin',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'esko_newsletter_generic' },
+                term: null,
+                content: null
+            },
+            organic_final_proof: {
+                source: 'linkedin',
+                medium: 'social',
+                campaign: { label: 'Campaign', placeholder: 'esko_newsletter_artwork' },
+                term: null,
+                content: null
+            },
+            free_software: {
+                source: 'website',
+                medium: 'free_tool',
+                campaign: { label: 'Campaign', placeholder: 'free_software' },
+                term: null,
+                content: { label: 'Tool Name', placeholder: 'tool_name' }
+            },
+            trial_software: {
+                source: 'website',
+                medium: 'trial',
+                campaign: { label: 'Campaign', placeholder: 'trial_signup' },
+                term: null,
+                content: { label: 'Product Name', placeholder: 'product_name' }
+            },
+            inbound_emails: {
+                source: 'email_inbound',
+                medium: 'email',
+                campaign: { label: 'Campaign', placeholder: 'contact_us / demo' },
+                term: null,
+                content: { label: 'CTA Name', placeholder: 'cta_name' }
+            },
+            nurturing_emails: {
+                source: 'email_nurture',
+                medium: 'email',
+                campaign: { label: 'Nurture Stream Name', placeholder: 'nurture_stream_name' },
+                term: null,
+                content: { label: 'Email Number', placeholder: 'email_number' }
+            },
+            pardot_brands: {
+                source: 'email_brands',
+                medium: 'email',
+                campaign: { label: 'Campaign Name', placeholder: 'campaign_name' },
+                term: null,
+                content: { label: 'Optional', placeholder: 'optional', optional: true }
+            },
+            pardot_suppliers: {
+                source: 'email_suppliers',
+                medium: 'email',
+                campaign: { label: 'Campaign Name', placeholder: 'campaign_name' },
+                term: null,
+                content: { label: 'Optional', placeholder: 'optional', optional: true }
+            },
+            outreach_brands: {
+                source: 'email_outreach_brands',
+                medium: 'email',
+                campaign: { label: 'Campaign Name', placeholder: 'campaign_name' },
+                term: null,
+                content: { label: 'Optional', placeholder: 'optional', optional: true }
+            },
+            outreach_suppliers: {
+                source: 'email_outreach_supliers',
+                medium: 'email',
+                campaign: { label: 'Campaign Name', placeholder: 'campaign_name' },
+                term: null,
+                content: { label: 'Optional', placeholder: 'optional', optional: true }
+            }
+        };
+
+        const webActivitySelect = document.getElementById('webActivity');
+        const dynamicFields = document.getElementById('dynamicFields');
+        const form = document.getElementById('utmForm');
+        const resultSection = document.getElementById('resultSection');
+        const resultUrl = document.getElementById('resultUrl');
+        const copyBtn = document.getElementById('copyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const copyNotification = document.getElementById('copyNotification');
+
+        webActivitySelect.addEventListener('change', function() {
+            const selectedActivity = this.value;
+            dynamicFields.innerHTML = '';
+            
+            if (selectedActivity && utmConfig[selectedActivity]) {
+                const config = utmConfig[selectedActivity];
+                const fieldsHTML = [];
+
+                if (config.campaign) {
+                    fieldsHTML.push(createField('campaign', config.campaign));
+                }
+                if (config.term) {
+                    fieldsHTML.push(createField('term', config.term));
+                }
+                if (config.content) {
+                    fieldsHTML.push(createField('content', config.content));
+                }
+
+                dynamicFields.innerHTML = `<div class="dynamic-inputs">${fieldsHTML.join('')}</div>`;
+            }
+        });
+
+        function createField(name, config) {
+            const optionalText = '<span class="optional">(optional)</span>';
+            return `
+                <div class="form-group">
+                    <label for="utm_${name}">utm_${name} ${optionalText}</label>
+                    <input type="text" id="utm_${name}" placeholder="${config.placeholder}">
+                </div>
+            `;
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const selectedActivity = webActivitySelect.value;
+            
+            if (!baseUrl || !selectedActivity) return;
+
+            const config = utmConfig[selectedActivity];
+            const url = new URL(baseUrl);
+            
+            url.searchParams.set('utm_source', config.source);
+            url.searchParams.set('utm_medium', config.medium);
+            
+            const campaignInput = document.getElementById('utm_campaign');
+            if (campaignInput && campaignInput.value.trim()) {
+                url.searchParams.set('utm_campaign', campaignInput.value.trim());
+            }
+            
+            const termInput = document.getElementById('utm_term');
+            if (termInput && termInput.value.trim()) {
+                url.searchParams.set('utm_term', termInput.value.trim());
+            }
+            
+            const contentInput = document.getElementById('utm_content');
+            if (contentInput && contentInput.value.trim()) {
+                url.searchParams.set('utm_content', contentInput.value.trim());
+            }
+            
+            resultUrl.textContent = url.toString();
+            resultSection.classList.add('show');
+            copyBtn.classList.add('show');
+            
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        copyBtn.addEventListener('click', function() {
+            const urlText = resultUrl.textContent;
+            navigator.clipboard.writeText(urlText).then(() => {
+                copyNotification.classList.add('show');
+                setTimeout(() => {
+                    copyNotification.classList.remove('show');
+                }, 2000);
+            });
+        });
+
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            dynamicFields.innerHTML = '';
+            resultSection.classList.remove('show');
+            copyBtn.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
